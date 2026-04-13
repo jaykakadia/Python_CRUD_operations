@@ -22,3 +22,28 @@ def create_note():
     db.session.commit()
 
     return {"message": "Created", "id": note.id}
+
+
+@notes_bp.route("/notes/<int:id>", methods = ["GET", "PUT"])
+def get_update_note(id):
+    """
+    Function to get or update an note in the db 
+    """
+    note = Note.query.get_or_404(id)
+
+    if request.method == "GET":
+        return {"id": note.id, "title": note.title, "content": note.content}
+
+    elif request.method == "PUT":
+        try:   # validation check
+            data = NoteModel(**request.json)
+        except ValidationError as e:
+            return jsonify(e.errors()), 400
+
+        note.title = data.title
+        note.content = data.content
+        db.session.commit()
+
+        return {"message": "Updated", "id": note.id}
+
+
