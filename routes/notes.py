@@ -46,4 +46,14 @@ def get_update_note(id):
 
         return {"message": "Updated", "id": note.id}
 
+@notes_bp.route("/notes/<int:id>", methods = ["DELETE"])
+def delete_note(id):
+    """
+    Function to Delete an note in the db 
+    """
+    note = Note.query.get_or_404(id)
 
+    db.session.delete(note)
+    db.session.commit()
+
+    return {"message": "Deleted"}
