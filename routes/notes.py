@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify
 from models import Note, NoteModel
+from flask import Blueprint, request, jsonify
 from extensions import db
 from pydantic import ValidationError
 
@@ -15,13 +15,18 @@ def create_note():
         data = NoteModel(**request.json)
     except ValidationError as e:
         return jsonify(e.errors()), 400
+    if not data.title or not data.content:
+        return {"message": "Title and content are required"}, 400 
     
     # Add to db
-    note = Note(title=data.title, content=data.content)
-    db.session.add(note)
-    db.session.commit()
+    try:    
+        note = Note(title=data.title, content=data.content)
+        db.session.add(note)
+        db.session.commit()
+        return {"message": "Created", "id": note.id}
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
-    return {"message": "Created", "id": note.id}
 
 
 @notes_bp.route("/notes/<int:id>", methods = ["PUT"])
@@ -29,32 +34,66 @@ def update_note(id):
     """
     Function to update a note in the db 
     """
-    note = Note.query.get(id)
 
-    if not note:
-        return {"message": "Note not found"}, 404
+    note = Note.query.get(id)
 
     try:   # validation check
         data = NoteModel(**request.json)
     except ValidationError as e:
         return jsonify(e.errors()), 400
+    
+    if not note:
+        return {"message": "Note not found"}, 404
+    if not data.title or not data.content:
+        return {"message": "Title and content are required"}, 400
+    
+    try:    
+        db.session.commit()
+        return {"message": "Updated", "id": note.id}
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+    
 
-    note.title = data.title
-    note.content = data.content
-    db.session.commit()
+@notes_bp.route("/notes/<int:id>", methods = ["PATCH"])
+def updatePartial_note(id):
+    """
+    Function to Partial update a note in the db 
+    """
 
-    return {"message": "Updated", "id": note.id}
+    note = Note.query.get(id)
+
+    try:   # validation check
+        data = NoteUpdateModel(**request.json)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
+    
+    if not note:
+        return {"message": "Note not found"}, 404
+        
+    if data.title is not None:
+        note.title = data.title
+
+    if data.content is not None:
+        note.content = data.content
+    try:    
+        db.session.commit()
+        return {"message": "Updated", "id": note.id}
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
     
 @notes_bp.route("/notes/<int:id>", methods = ["GET"])
 def get_note(id):
     """
     Function to get a note in the db 
     """
-    note = Note.query.get(id)
-    if not note:
-        return {"message": "Note not found"}, 404
-    
-    return {"id": note.id, "title": note.title, "content": note.content}
+    try:
+        note = Note.query.get(id)
+        if not note:
+            return {"message": "Note not found"}, 404
+        
+        return {"id": note.id, "title": note.title, "content": note.content}
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 @notes_bp.route("/notes/<int:id>", methods = ["DELETE"])
 def delete_note(id):
@@ -63,15 +102,21 @@ def delete_note(id):
     """
     note = Note.query.get_or_404(id)
 
-    db.session.delete(note)
-    db.session.commit()
+    try:
+        db.session.delete(note)
+        db.session.commit()
+        return {"message": "Deleted"}
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
-    return {"message": "Deleted"}
 
 @notes_bp.route("/allNotes", methods=["GET"])
 def get_notes():
-    notes = Note.query.all()
-    return jsonify([
-        {"id": n.id, "title": n.title, "content": n.content}
-        for n in notes
-    ])
+    try:
+        notes = Note.query.all()
+        return jsonify([
+            {"id": n.id, "title": n.title, "content": n.content}
+            for n in notes
+        ])
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
