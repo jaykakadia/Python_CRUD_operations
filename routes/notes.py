@@ -15,7 +15,7 @@ def create_note():
         data = NoteModel(**request.json)
     except ValidationError as e:
         return jsonify(e.errors()), 400
-
+    
     # Add to db
     note = Note(title=data.title, content=data.content)
     db.session.add(note)
@@ -24,27 +24,37 @@ def create_note():
     return {"message": "Created", "id": note.id}
 
 
-@notes_bp.route("/notes/<int:id>", methods = ["GET", "PUT"])
-def get_update_note(id):
+@notes_bp.route("/notes/<int:id>", methods = ["PUT"])
+def update_note(id):
     """
-    Function to get or update an note in the db 
+    Function to update a note in the db 
     """
-    note = Note.query.get_or_404(id)
+    note = Note.query.get(id)
 
-    if request.method == "GET":
-        return {"id": note.id, "title": note.title, "content": note.content}
+    if not note:
+        return {"message": "Note not found"}, 404
 
-    elif request.method == "PUT":
-        try:   # validation check
-            data = NoteModel(**request.json)
-        except ValidationError as e:
-            return jsonify(e.errors()), 400
+    try:   # validation check
+        data = NoteModel(**request.json)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
 
-        note.title = data.title
-        note.content = data.content
-        db.session.commit()
+    note.title = data.title
+    note.content = data.content
+    db.session.commit()
 
-        return {"message": "Updated", "id": note.id}
+    return {"message": "Updated", "id": note.id}
+    
+@notes_bp.route("/notes/<int:id>", methods = ["GET"])
+def get_note(id):
+    """
+    Function to get a note in the db 
+    """
+    note = Note.query.get(id)
+    if not note:
+        return {"message": "Note not found"}, 404
+    
+    return {"id": note.id, "title": note.title, "content": note.content}
 
 @notes_bp.route("/notes/<int:id>", methods = ["DELETE"])
 def delete_note(id):
@@ -57,3 +67,11 @@ def delete_note(id):
     db.session.commit()
 
     return {"message": "Deleted"}
+
+@notes_bp.route("/allNotes", methods=["GET"])
+def get_notes():
+    notes = Note.query.all()
+    return jsonify([
+        {"id": n.id, "title": n.title, "content": n.content}
+        for n in notes
+    ])
