@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Auth View -->
+        <main id="auth-view" class="view active">
+            <div class="auth-box">
+                <h2>Notes</h2>
+                <form id="auth-form">
+                    <input type="text" id="username" placeholder="Username" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    
+                    <div class="role-selector">
+                        <label><input type="radio" name="role" value="user" checked> User</label>
+                        <label><input type="radio" name="role" value="admin"> Admin</label>
+                    </div>
+
+                    <div class="auth-buttons">
+                        <button type="submit" id="login-btn" class="primary-btn">Login</button>
+                        <button type="button" id="register-btn" class="secondary-btn">Register</button>
+                    </div>
+                </form>
+                <div id="auth-error" class="error-text"></div>
+            </div>
+        </main>
+
+        <!-- Dashboard View -->
+        <main id="dashboard-view" class="view">
+            <header>
+                <div>
+                    <h2>Notes Dashboard</h2>
+                    <span id="user-badge" class="badge"></span>
+                </div>
+                <button id="logout-btn" class="danger-btn">Logout</button>
+            </header>
+
+            <section class="create-note-section">
+                <form id="create-note-form">
+                    <input type="text" id="note-title" placeholder="Note Title" required>
+                    <textarea id="note-content" placeholder="Write something..." required></textarea>
+                    <button type="submit" class="primary-btn">Create Note</button>
+                </form>
+            </section>
+
+            <section class="notes-grid" id="notes-container">
+                <!-- Notes will be injected here -->
+            </section>
+        </main>
+    </div>
+
+    <!-- Edit Note Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h3>Edit Note</h3>
+            <form id="edit-note-form">
+                <input type="hidden" id="edit-note-id">
+                <input type="text" id="edit-note-title" required>
+                <textarea id="edit-note-content" required></textarea>
+                <div class="modal-actions">
+                    <button type="submit" class="primary-btn">Save Changes</button>
+                    <button type="button" id="close-modal-btn" class="secondary-btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
